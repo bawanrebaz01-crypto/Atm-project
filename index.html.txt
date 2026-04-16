@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart ATM</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .container {
+            background: rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            width: 300px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            width: 80%;
+            border: none;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #00c6ff;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #00a2cc;
+        }
+
+        #atm {
+            display: none;
+        }
+
+        .warning {
+            color: yellow;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container" id="login">
+    <h2>💳 Smart ATM</h2>
+    <input type="password" id="pin" placeholder="Enter PIN">
+    <button onclick="login()">Login</button>
+    <p id="loginMsg"></p>
+</div>
+
+<div class="container" id="atm">
+    <h2>ATM Menu</h2>
+    <p id="balance"></p>
+
+    <button onclick="checkBalance()">Check Balance</button>
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button>
+    <button onclick="showLast()">Last Transaction</button>
+    <button onclick="logout()">Logout</button>
+
+    <p id="output"></p>
+</div>
+
+<script>
+let pins = [1234, 5678];
+let balances = [2000, 5000];
+let userIndex = -1;
+let attempts = 0;
+let lastTransaction = "None";
+
+// Login
+function login() {
+    let enteredPin = parseInt(document.getElementById("pin").value);
+
+    if (pins.includes(enteredPin)) {
+        userIndex = pins.indexOf(enteredPin);
+        document.getElementById("login").style.display = "none";
+        document.getElementById("atm").style.display = "block";
+        updateBalance();
+    } else {
+        attempts++;
+        document.getElementById("loginMsg").innerText = "Wrong PIN!";
+        document.getElementById("loginMsg").className = "error";
+
+        if (attempts >= 3) {
+            document.getElementById("loginMsg").innerText = "Account locked!";
+        }
+    }
+}
+
+// Update Balance
+function updateBalance() {
+    let msg = "Balance: " + balances[userIndex];
+
+    if (balances[userIndex] < 100) {
+        msg += " (Low Balance!)";
+    }
+
+    document.getElementById("balance").innerText = msg;
+}
+
+// Check Balance
+function checkBalance() {
+    updateBalance();
+}
+
+// Deposit
+function deposit() {
+    let amount = parseInt(prompt("Enter deposit amount:"));
+
+    if (amount <= 0 || isNaN(amount)) {
+        output("Invalid amount!", "error");
+    } else {
+        balances[userIndex] += amount;
+        lastTransaction = "Deposited: " + amount;
+        output("Deposit successful!");
+
+        if (amount > 5000) {
+            output("Large deposit detected!", "warning");
+        }
+
+        updateBalance();
+    }
+}
+
+// Withdraw
+function withdraw() {
+    let amount = parseInt(prompt("Enter withdrawal amount:"));
+
+    if (amount > balances[userIndex]) {
+        output("Insufficient funds!", "error");
+    } else if (amount > 1000) {
+        output("Exceeds daily limit!", "error");
+    } else if (amount <= 0 || isNaN(amount)) {
+        output("Invalid amount!", "error");
+    } else {
+        if (amount === balances[userIndex]) {
+            output("Your account will be empty!", "warning");
+        }
+
+        balances[userIndex] -= amount;
+        lastTransaction = "Withdrew: " + amount;
+
+        output("Withdrawal successful!");
+        updateBalance();
+    }
+}
+
+// Last Transaction
+function showLast() {
+    output("Last transaction: " + lastTransaction);
+}
+
+// Logout
+function logout() {
+    document.getElementById("atm").style.display = "none";
+    document.getElementById("login").style.display = "block";
+    document.getElementById("pin").value = "";
+    attempts = 0;
+}
+
+// Output Messages
+function output(msg, type="") {
+    let out = document.getElementById("output");
+    out.innerText = msg;
+    out.className = type;
+}
+</script>
+
+</body>
+</html>
